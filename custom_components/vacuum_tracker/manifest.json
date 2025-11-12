@@ -1,0 +1,10 @@
+{
+  "domain": "vacuum_tracker",
+  "name": "Vacuum Tracker",
+  "version": "0.1.0",
+  "documentation": "https://github.com/Pahegi/HAVacuumTrajectory",
+  "requirements": [],
+  "codeowners": ["@Pahegi"],
+  "config_flow": true,
+  "iot_class": "local_push"
+}

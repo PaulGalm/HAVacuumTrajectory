@@ -1,0 +1,43 @@
+{
+  "title": "Vacuum Tracker",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vacuum Tracker",
+        "description": "Select the vacuums to track and configure position attributes if required.",
+        "data": {
+          "vacuums": "Vacuums",
+          "max_points": "Maximum history points",
+          "position_attribute": "Position attribute",
+          "x_attribute": "X attribute",
+          "y_attribute": "Y attribute"
+        }
+      }
+    },
+    "error": {},
+    "abort": {
+      "single_instance_allowed": "Only a single Vacuum Tracker configuration is supported."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Vacuum Tracker options",
+        "data": {
+          "vacuums": "Vacuums",
+          "max_points": "Maximum history points",
+          "position_attribute": "Position attribute",
+          "x_attribute": "X attribute",
+          "y_attribute": "Y attribute"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "vacuum_path": {
+        "name": "Vacuum path"
+      }
+    }
+  }
+}
