@@ -108,9 +108,15 @@ def _normalise_config(user_input: dict) -> dict:
     vacuums = user_input.get(CONF_VACUUMS, [])
     if isinstance(vacuums, str):
         vacuums = [v.strip() for v in vacuums.split(",") if v.strip()]
+    max_points_raw = user_input.get(CONF_MAX_POINTS, DEFAULT_MAX_POINTS)
+    try:
+        max_points = int(max_points_raw)
+    except (TypeError, ValueError):
+        max_points = DEFAULT_MAX_POINTS
+
     return {
         CONF_VACUUMS: vacuums,
-        CONF_MAX_POINTS: user_input.get(CONF_MAX_POINTS, DEFAULT_MAX_POINTS),
+        CONF_MAX_POINTS: max_points,
         CONF_POSITION_ATTRIBUTE: user_input.get(
             CONF_POSITION_ATTRIBUTE, DEFAULT_POSITION_ATTRIBUTE
         ),

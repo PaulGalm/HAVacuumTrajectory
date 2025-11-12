@@ -46,7 +46,10 @@ class VacuumHistoryManager:
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self._hass = hass
         self._entry = entry
-        self._max_points = self._get_entry_value(CONF_MAX_POINTS, DEFAULT_MAX_POINTS)
+        self._max_points = self._coerce_int(
+            self._get_entry_value(CONF_MAX_POINTS, DEFAULT_MAX_POINTS),
+            DEFAULT_MAX_POINTS,
+        )
         self._position_attribute = self._get_entry_value(
             CONF_POSITION_ATTRIBUTE, DEFAULT_POSITION_ATTRIBUTE
         ) or None
@@ -99,6 +102,12 @@ class VacuumHistoryManager:
                 continue
             result.append(VacuumConfig(entity_id=entity_id, display_name=name))
         return result
+
+    def _coerce_int(self, value: Any, default: int) -> int:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
 
     def get_vacuum_configs(self) -> list[VacuumConfig]:
         """Expose tracked vacuum definitions to platforms."""
