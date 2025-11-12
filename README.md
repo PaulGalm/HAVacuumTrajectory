@@ -14,7 +14,7 @@ type: module
 
 ## Configuration
 
-Use the Home Assistant UI to add the *Vacuum Tracker* integration. Select the vacuums you want to monitor and adjust the maximum number of stored locations or attribute names if necessary.
+Use the Home Assistant UI to add the *Vacuum Tracker* integration. Select the vacuums you want to monitor and adjust the maximum number of stored locations or attribute names if necessary. By default the integration reads coordinates from the `position` attribute (first two values are treated as `x`/`y`). Override the attribute fields if your vacuum exposes coordinates differently.
 
 The integration creates one sensor per vacuum. Each sensor stores a `history` attribute containing a list of `{x, y, timestamp}` dictionaries representing the recorded trajectory. The sensor state is the number of stored points.
 

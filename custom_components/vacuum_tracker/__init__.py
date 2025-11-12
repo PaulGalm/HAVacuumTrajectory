@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import logging
+import re
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Any, Callable
-import logging
+from typing import Any, Callable, Iterable
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
@@ -152,19 +153,20 @@ class VacuumHistoryManager:
 
     def _extract_point(self, state: State) -> dict[str, Any] | None:
         # Try a vector attribute first, fallback to separate axes.
+        candidate = None
         if self._position_attribute:
             candidate = state.attributes.get(self._position_attribute)
-            if isinstance(candidate, (list, tuple)) and len(candidate) >= 2:
-                try:
-                    x = float(candidate[0])
-                    y = float(candidate[1])
-                    return {
-                        "x": x,
-                        "y": y,
-                        "timestamp": dt_util.utcnow().isoformat(),
-                    }
-                except (TypeError, ValueError):
-                    pass
+        if candidate is None:
+            candidate = state.attributes.get("position")
+
+        coords = self._normalise_coordinates(candidate)
+        if coords:
+            return {
+                "x": coords[0],
+                "y": coords[1],
+                "timestamp": dt_util.utcnow().isoformat(),
+            }
+
         x_raw = state.attributes.get(self._x_attribute)
         y_raw = state.attributes.get(self._y_attribute)
         if x_raw is None or y_raw is None:
@@ -181,6 +183,39 @@ class VacuumHistoryManager:
     def _notify_listeners(self, entity_id: str) -> None:
         for listener in list(self._sensor_listeners.get(entity_id, [])):
             listener()
+
+    def _normalise_coordinates(self, value: Any) -> tuple[float, float] | None:
+        """Extract x/y floats from various attribute formats."""
+        if value is None:
+            return None
+
+        if isinstance(value, (list, tuple, set)):
+            iterable: Iterable[Any] = value
+        elif isinstance(value, dict):
+            iterable = (
+                value.get("x"),
+                value.get("y"),
+            )
+        elif isinstance(value, str):
+            stripped = value.strip().strip("[]{}()").replace(";", ",")
+            matches = re.findall(r"[-+]?[0-9]*\.?[0-9]+", stripped)
+            if len(matches) < 2:
+                return None
+            iterable = (matches[0], matches[1])
+        else:
+            return None
+
+        try:
+            iterator = iter(iterable)
+            x_raw = next(iterator)
+            y_raw = next(iterator)
+        except StopIteration:
+            return None
+
+        try:
+            return float(x_raw), float(y_raw)
+        except (TypeError, ValueError):
+            return None
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
