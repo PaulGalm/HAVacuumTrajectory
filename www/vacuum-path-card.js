@@ -19,7 +19,7 @@ class VacuumPathCard extends HTMLElement {
     };
   this._image = this._image || null;
   this._imageSrc = this._imageSrc || null;
-  this._imageLoading = this._imageLoading || false;
+  this._imageLoading = Boolean(this._imageLoading);
   this._imageErrorSrc = null;
 
     if (!this.content) {
@@ -61,8 +61,7 @@ class VacuumPathCard extends HTMLElement {
     }
 
     this._ensureImage();
-    const imageReady =
-      this._image && this._image.complete && this._image.naturalWidth;
+    const imageReady = this._isImageReady();
 
     const displayWidth =
       this.canvas.clientWidth || this.canvas.parentElement?.offsetWidth || 600;
@@ -71,6 +70,8 @@ class VacuumPathCard extends HTMLElement {
       const aspect = this._image.naturalHeight / this._image.naturalWidth;
       displayHeight = displayWidth * aspect;
     }
+
+    this.canvas.style.height = `${displayHeight}px`;
 
     const pixelRatio = window.devicePixelRatio || 1;
     const targetWidth = Math.floor(displayWidth * pixelRatio);
@@ -169,8 +170,7 @@ class VacuumPathCard extends HTMLElement {
     const width =
       this.canvas.clientWidth || this.canvas.parentElement?.offsetWidth || 600;
     let height = this.canvas.clientHeight || 300;
-    const imageReady =
-      this._image && this._image.complete && this._image.naturalWidth;
+    const imageReady = this._isImageReady();
     if (imageReady) {
       height = width * (this._image.naturalHeight / this._image.naturalWidth);
     }
@@ -206,21 +206,27 @@ class VacuumPathCard extends HTMLElement {
       this._imageErrorSrc = null;
       return;
     }
-    if (this._imageSrc === src) {
+    const resolvedSrc = this._resolveResource(src);
+    if (this._imageSrc === resolvedSrc) {
       if (this._image && this._image.complete) {
         return;
       }
       if (this._imageLoading) {
         return;
       }
-      if (this._imageErrorSrc === src) {
+      if (this._imageErrorSrc === resolvedSrc) {
         return;
       }
     }
 
     this._imageLoading = true;
-    this._imageSrc = src;
+    this._image = null;
+    this._imageSrc = resolvedSrc;
     const img = new Image();
+    img.decoding = "async";
+    if (!resolvedSrc.startsWith(window.location.origin)) {
+      img.crossOrigin = "anonymous";
+    }
     img.onload = () => {
       this._image = img;
       this._imageLoading = false;
@@ -229,13 +235,13 @@ class VacuumPathCard extends HTMLElement {
     };
     img.onerror = () => {
       // eslint-disable-next-line no-console
-      console.error(`Failed to load vacuum path background image: ${src}`);
+      console.error(`Failed to load vacuum path background image: ${resolvedSrc}`);
       this._image = null;
       this._imageLoading = false;
-      this._imageErrorSrc = src;
+      this._imageErrorSrc = resolvedSrc;
       this._drawEmpty("Image load error");
     };
-    img.src = src;
+    img.src = resolvedSrc;
   }
 
   _transformPoint(point) {
@@ -256,6 +262,28 @@ class VacuumPathCard extends HTMLElement {
     const rotatedX = shiftedX * cos - shiftedY * sin;
     const rotatedY = shiftedX * sin + shiftedY * cos;
     return { x: rotatedX, y: rotatedY, timestamp: point.timestamp };
+  }
+
+  _isImageReady() {
+    return Boolean(
+      this._image && this._image.complete && this._image.naturalWidth > 0,
+    );
+  }
+
+  _resolveResource(url) {
+    if (!url) {
+      return undefined;
+    }
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+    try {
+      return new URL(url, window.location.origin).href;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("vacuum-path-card: unable to resolve image URL", url, err);
+      return url;
+    }
   }
 
   getCardSize() {
