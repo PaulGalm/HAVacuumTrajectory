@@ -8,6 +8,7 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable
 
+from homeassistant.components.vacuum import STATE_CLEANING, STATE_DOCKED
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import Event, HomeAssistant, State, callback
@@ -19,12 +20,8 @@ from .const import (
     CONF_MAX_POINTS,
     CONF_POSITION_ATTRIBUTE,
     CONF_VACUUMS,
-    CONF_X_ATTRIBUTE,
-    CONF_Y_ATTRIBUTE,
     DEFAULT_MAX_POINTS,
     DEFAULT_POSITION_ATTRIBUTE,
-    DEFAULT_X_ATTRIBUTE,
-    DEFAULT_Y_ATTRIBUTE,
     DOMAIN,
     PLATFORMS,
 )
@@ -53,8 +50,6 @@ class VacuumHistoryManager:
         self._position_attribute = self._get_entry_value(
             CONF_POSITION_ATTRIBUTE, DEFAULT_POSITION_ATTRIBUTE
         ) or None
-        self._x_attribute = self._get_entry_value(CONF_X_ATTRIBUTE, DEFAULT_X_ATTRIBUTE)
-        self._y_attribute = self._get_entry_value(CONF_Y_ATTRIBUTE, DEFAULT_Y_ATTRIBUTE)
         self._vacuum_configs: list[VacuumConfig] = self._build_vacuum_configs()
         self._histories: dict[str, deque[dict[str, Any]]] = {
             vacuum.entity_id: deque(maxlen=self._max_points)
@@ -138,8 +133,10 @@ class VacuumHistoryManager:
         if not new_state:
             _LOGGER.debug("State event without new state for %s", entity_id)
             return
+        old_state: State | None = event.data.get("old_state")
+        reset = self._maybe_reset_history(entity_id, old_state, new_state)
         appended = self._append_from_state(entity_id, new_state)
-        if appended:
+        if appended or reset:
             self._notify_listeners(entity_id)
 
     def _append_from_state(
@@ -176,22 +173,26 @@ class VacuumHistoryManager:
                 "timestamp": dt_util.utcnow().isoformat(),
             }
 
-        x_raw = state.attributes.get(self._x_attribute)
-        y_raw = state.attributes.get(self._y_attribute)
-        if x_raw is None or y_raw is None:
-            return None
-        try:
-            return {
-                "x": float(x_raw),
-                "y": float(y_raw),
-                "timestamp": dt_util.utcnow().isoformat(),
-            }
-        except (TypeError, ValueError):
-            return None
-
     def _notify_listeners(self, entity_id: str) -> None:
         for listener in list(self._sensor_listeners.get(entity_id, [])):
             listener()
+
+    def _maybe_reset_history(
+        self, entity_id: str, old_state: State | None, new_state: State
+    ) -> bool:
+        if old_state is None:
+            return False
+        old_status = old_state.state
+        new_status = new_state.state
+        if (
+            old_status == STATE_DOCKED
+            and new_status == STATE_CLEANING
+            and (history := self._histories.get(entity_id)) is not None
+        ):
+            history.clear()
+            _LOGGER.debug("Reset history for %s on docked→cleaning transition", entity_id)
+            return True
+        return False
 
     def _normalise_coordinates(self, value: Any) -> tuple[float, float] | None:
         """Extract x/y floats from various attribute formats."""

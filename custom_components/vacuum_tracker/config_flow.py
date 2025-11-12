@@ -11,12 +11,8 @@ from .const import (
     CONF_MAX_POINTS,
     CONF_POSITION_ATTRIBUTE,
     CONF_VACUUMS,
-    CONF_X_ATTRIBUTE,
-    CONF_Y_ATTRIBUTE,
     DEFAULT_MAX_POINTS,
     DEFAULT_POSITION_ATTRIBUTE,
-    DEFAULT_X_ATTRIBUTE,
-    DEFAULT_Y_ATTRIBUTE,
     DOMAIN,
 )
 
@@ -91,14 +87,6 @@ def _build_schema(values: dict | None = None) -> vol.Schema:
                 CONF_POSITION_ATTRIBUTE,
                 default=values.get(CONF_POSITION_ATTRIBUTE, DEFAULT_POSITION_ATTRIBUTE),
             ): selector.selector({"text": {"type": "text"}}),
-            vol.Optional(
-                CONF_X_ATTRIBUTE,
-                default=values.get(CONF_X_ATTRIBUTE, DEFAULT_X_ATTRIBUTE),
-            ): selector.selector({"text": {"type": "text"}}),
-            vol.Optional(
-                CONF_Y_ATTRIBUTE,
-                default=values.get(CONF_Y_ATTRIBUTE, DEFAULT_Y_ATTRIBUTE),
-            ): selector.selector({"text": {"type": "text"}}),
         }
     )
 
@@ -120,6 +108,4 @@ def _normalise_config(user_input: dict) -> dict:
         CONF_POSITION_ATTRIBUTE: user_input.get(
             CONF_POSITION_ATTRIBUTE, DEFAULT_POSITION_ATTRIBUTE
         ),
-        CONF_X_ATTRIBUTE: user_input.get(CONF_X_ATTRIBUTE, DEFAULT_X_ATTRIBUTE),
-        CONF_Y_ATTRIBUTE: user_input.get(CONF_Y_ATTRIBUTE, DEFAULT_Y_ATTRIBUTE),
     }

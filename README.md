@@ -14,7 +14,7 @@ type: module
 
 ## Configuration
 
-Use the Home Assistant UI to add the *Vacuum Tracker* integration. Select the vacuums you want to monitor and adjust the maximum number of stored locations or attribute names if necessary. By default the integration reads coordinates from the `position` attribute (first two values are treated as `x`/`y`). Override the attribute fields if your vacuum exposes coordinates differently.
+Use the Home Assistant UI to add the *Vacuum Tracker* integration. Select the vacuums you want to monitor and adjust the maximum number of stored locations or override the position attribute name if necessary. By default the integration reads coordinates from the `position` attribute and interprets the first two values as `x`/`y`.
 
 The integration creates one sensor per vacuum. Each sensor stores a `history` attribute containing a list of `{x, y, timestamp}` dictionaries representing the recorded trajectory. The sensor state is the number of stored points.
 
@@ -30,6 +30,14 @@ point_color: '#ff9800'
 line_width: 3
 show_points: false
 background: '#000000'
+background_image: /local/floorplan.png
+scale: 1.2
+rotation: -5
+offset_x: -2
+offset_y: 4
+invert_y: false
 ```
 
-All visual parameters are optional.
+All visual parameters are optional. When `background_image` is provided, the trajectory is drawn over the image with the optional `scale`, `rotation` (degrees), and `offset_x`/`offset_y` (coordinate offsets) applied before rendering. Set `invert_y` to `false` if your background uses a top-left origin.
+
+The integration automatically clears the stored trajectory whenever a tracked vacuum transitions from the docked state to cleaning so each run starts fresh.

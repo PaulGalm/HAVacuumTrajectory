@@ -8,9 +8,7 @@
         "data": {
           "vacuums": "Vacuums",
           "max_points": "Maximum history points",
-          "position_attribute": "Position attribute",
-          "x_attribute": "X attribute",
-          "y_attribute": "Y attribute"
+          "position_attribute": "Position attribute"
         }
       }
     },
@@ -26,9 +24,7 @@
         "data": {
           "vacuums": "Vacuums",
           "max_points": "Maximum history points",
-          "position_attribute": "Position attribute",
-          "x_attribute": "X attribute",
-          "y_attribute": "Y attribute"
+          "position_attribute": "Position attribute"
         }
       }
     }
