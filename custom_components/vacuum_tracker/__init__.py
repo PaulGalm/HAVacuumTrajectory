@@ -8,7 +8,12 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable
 
-from homeassistant.components.vacuum.const import VacuumActivity
+try:  # Home Assistant 2025.11 and newer
+    from homeassistant.components.vacuum.const import VacuumActivity
+except ImportError:  # Older Home Assistant versions
+    VacuumActivity = None
+    from homeassistant.components.vacuum import STATE_CLEANING, STATE_DOCKED
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import Event, HomeAssistant, State, callback
@@ -186,21 +191,35 @@ class VacuumHistoryManager:
         new_status = new_state.state
         if old_status is None or new_status is None:
             return False
-        try:
-            old_activity = VacuumActivity(old_status)
-            new_activity = VacuumActivity(new_status)
-        except ValueError:
-            return False
-        if (
-            old_activity is VacuumActivity.DOCKED
-            and new_activity is VacuumActivity.CLEANING
-            and (history := self._histories.get(entity_id)) is not None
-        ):
+
+        def _reset() -> bool:
+            history = self._histories.get(entity_id)
+            if history is None:
+                return False
             history.clear()
             _LOGGER.debug(
                 "Reset history for %s on docked→cleaning transition", entity_id
             )
             return True
+
+        if VacuumActivity is not None:
+            try:
+                old_activity = VacuumActivity(old_status)
+                new_activity = VacuumActivity(new_status)
+            except ValueError:
+                return False
+            if (
+                old_activity is VacuumActivity.DOCKED
+                and new_activity is VacuumActivity.CLEANING
+            ):
+                return _reset()
+            return False
+
+        if (
+            old_status == STATE_DOCKED
+            and new_status == STATE_CLEANING
+        ):
+            return _reset()
         return False
 
     def _normalise_coordinates(self, value: Any) -> tuple[float, float] | None:

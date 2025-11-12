@@ -206,6 +206,10 @@ class VacuumPathCard extends HTMLElement {
       this._imageErrorSrc = null;
       return;
     }
+    if (!this._hass && !src.startsWith("http")) {
+      // Wait until hass is set so we can resolve /local URLs correctly.
+      return;
+    }
     const resolvedSrc = this._resolveResource(src);
     if (this._imageSrc === resolvedSrc) {
       if (this._image && this._image.complete) {
@@ -274,16 +278,31 @@ class VacuumPathCard extends HTMLElement {
     if (!url) {
       return undefined;
     }
+    if (this._hass && typeof this._hass.hassUrl === "function") {
+      try {
+        return this._hass.hassUrl(url);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn("vacuum-path-card: hassUrl resolution failed", url, err);
+      }
+    }
+
     if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
+
+    if (url.startsWith("/")) {
+      return `${window.location.origin}${url}`;
+    }
+
+    const base = window.location.href.split("?")[0];
     try {
-      return new URL(url, window.location.origin).href;
+      return new URL(url, base).href;
     } catch (err) {
       // eslint-disable-next-line no-console
       console.warn("vacuum-path-card: unable to resolve image URL", url, err);
       return url;
-    }
+  }
   }
 
   getCardSize() {
