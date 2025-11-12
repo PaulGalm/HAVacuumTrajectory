@@ -147,8 +147,8 @@ class VacuumHistoryManager:
             # Replace the trailing entry to keep the latest timestamp without duplicating points.
             history[-1] = point
             return True
-    history.append(point)
-    return True
+        history.append(point)
+        return True
 
     def _extract_point(self, state: State) -> dict[str, Any] | None:
         # Try a vector attribute first, fallback to separate axes.
