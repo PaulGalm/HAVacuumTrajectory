@@ -1,0 +1,7 @@
+{
+  "name": "Vacuum Tracker",
+  "homeassistant": "2024.1.0",
+  "content_in_root": false,
+  "filename": "vacuum-path-card.js",
+  "persistent_directory": null
+}
