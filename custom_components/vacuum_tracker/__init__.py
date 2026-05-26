@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+
+from pathlib import Path
+
 import logging
 import re
 from collections import defaultdict, deque
@@ -14,6 +17,8 @@ except ImportError:  # Older Home Assistant versions
     VacuumActivity = None
     from homeassistant.components.vacuum import STATE_CLEANING, STATE_DOCKED
 
+from homeassistant.components.http import StaticPathConfig
+from homeassistant.components.lovelace import DOMAIN as LOVELACE_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import Event, HomeAssistant, State, callback
@@ -32,7 +37,7 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-
+STATIC_PATH_URL = "/vacuum_tracker_static"
 
 @dataclass(slots=True)
 class VacuumConfig:
@@ -277,6 +282,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+
+    # Register static path for frontend files and Lovelace resources
+    await _register_frontend(hass)
+    
     return True
 
 async def _register_frontend(hass: HomeAssistant) -> None:
