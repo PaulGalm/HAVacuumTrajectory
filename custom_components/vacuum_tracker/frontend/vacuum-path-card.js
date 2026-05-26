@@ -326,3 +326,16 @@ class VacuumPathCard extends HTMLElement {
 }
 
 customElements.define("vacuum-path-card", VacuumPathCard);
+
+// Export config for Lovelace integration
+window.HASS_CUSTOM_CARDS = window.HASS_CUSTOM_CARDS || {};
+window.HASS_CUSTOM_CARDS.vacuum_path_card = {
+  name: "Vacuum Path Card",
+  description: "Track vacuum movement path over time",
+  icon: "mdi:motorcycle" // Optional: helps UI recognition
+};
+
+// Ensure card is available globally for add card menu
+if (window.loadCardHelpers) {
+  window.loadCardHelpers.registerCards([VacuumPathCard]);
+}
