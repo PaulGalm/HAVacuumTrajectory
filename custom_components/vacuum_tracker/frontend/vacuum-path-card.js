@@ -339,3 +339,5 @@ window.HASS_CUSTOM_CARDS.vacuum_path_card = {
 if (window.loadCardHelpers) {
   window.loadCardHelpers.registerCards([VacuumPathCard]);
 }
+
+console.log("Vacuum Path Card registered");

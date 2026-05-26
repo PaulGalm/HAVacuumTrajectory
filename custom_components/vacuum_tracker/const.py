@@ -9,3 +9,6 @@ CONF_POSITION_ATTRIBUTE = "position_attribute"
 DEFAULT_MAX_POINTS = 1000
 DEFAULT_POSITION_ATTRIBUTE = "position"
 PLATFORMS: tuple[Platform, ...] = (Platform.SENSOR,)
+
+# Card types for Lovelace integration
+CARD_TYPES = ("vacuum-path-card",)
