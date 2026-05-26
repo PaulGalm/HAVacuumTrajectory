@@ -1,4 +1,7 @@
 class VacuumPathCard extends HTMLElement {
+  constructor() {
+    super();
+  }
   setConfig(config) {
     if (!config.entity) {
       throw new Error("Entity is required");
