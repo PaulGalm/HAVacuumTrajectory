@@ -279,6 +279,45 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
 
+async def _register_frontend(hass: HomeAssistant) -> None:
+    """Register static path and Lovelace resources for Vacuum tracker UI card."""
+    # Skip if http component is not loaded (e.g., in tests)
+    if hass.http is None:
+        return
+
+    # Get the path to the frontend directory
+    frontend_path = Path(__file__).parent / "frontend"
+
+    # Register static path to serve frontend files
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(STATIC_PATH_URL, str(frontend_path), cache_headers=False)]
+    )
+
+    # Access the Lovelace resources collection
+    lovelace_data = hass.data.get(LOVELACE_DOMAIN)
+    if lovelace_data is None:
+        return
+
+    resources = lovelace_data.resources
+    if resources is None:
+        return
+
+    # Check if resources already registered
+    existing_resources = resources.async_items()
+    resource_urls = {item["url"] for item in existing_resources}
+
+    # Define card resources to register
+    card_resources = [
+        {
+            "url": f"{STATIC_PATH_URL}/vacuum-path-card.js",
+            "res_type": "module",
+        },
+    ]
+
+    # Register each resource if not already present
+    for resource in card_resources:
+        if resource["url"] not in resource_urls:
+            await resources.async_create_item(resource)
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of a config entry."""
