@@ -1,7 +1,4 @@
 class VacuumPathCard extends HTMLElement {
-  constructor() {
-    super();
-  }
   setConfig(config) {
     if (!config.entity) {
       throw new Error("Entity is required");
@@ -20,10 +17,10 @@ class VacuumPathCard extends HTMLElement {
       invert_y: true,
       ...config,
     };
-  this._image = this._image || null;
-  this._imageSrc = this._imageSrc || null;
-  this._imageLoading = Boolean(this._imageLoading);
-  this._imageErrorSrc = null;
+    this._image = this._image || null;
+    this._imageSrc = this._imageSrc || null;
+    this._imageLoading = Boolean(this._imageLoading);
+    this._imageErrorSrc = null;
 
     if (!this.content) {
       this.content = document.createElement("ha-card");
@@ -38,6 +35,14 @@ class VacuumPathCard extends HTMLElement {
     if (this._hass) {
       this._update();
     }
+  }
+
+  getConfigElement() {
+    return document.createElement("vacuum-path-card-editor");
+  }
+
+  getCardSize() {
+    return 3;
   }
 
   set hass(hass) {
@@ -305,11 +310,7 @@ class VacuumPathCard extends HTMLElement {
       // eslint-disable-next-line no-console
       console.warn("vacuum-path-card: unable to resolve image URL", url, err);
       return url;
-  }
-  }
-
-  getCardSize() {
-    return 3;
+    }
   }
 }
 
