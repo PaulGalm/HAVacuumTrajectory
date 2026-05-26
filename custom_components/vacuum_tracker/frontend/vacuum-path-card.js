@@ -37,6 +37,17 @@ class VacuumPathCard extends HTMLElement {
     }
   }
 
+  static getStubConfig() {
+    return {
+      entity: "",
+      line_color: "#1e88e5",
+      point_color: "#ef5350",
+      line_width: 2,
+      show_points: true,
+      background: "#0d1117",
+    };
+  }
+
   getConfigElement() {
     return document.createElement("vacuum-path-card-editor");
   }
