@@ -336,9 +336,4 @@ window.customCards.push({
   preview: true,
 });
 
-// Ensure card is available globally for add card menu
-if (window.loadCardHelpers) {
-  window.loadCardHelpers.registerCards([VacuumPathCard]);
-}
-
 console.log("Vacuum Path Card registered");
